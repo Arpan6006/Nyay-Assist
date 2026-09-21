@@ -52,10 +52,9 @@ graph TD
         Router_Admin[/api/admin - Verification Management]
     end
 
-    subgraph AI_Intelligence_Tier [Unified LLM & Embedding Pipeline]
-        LLM_Groq[Groq LPU Engine - LLaMA 3.3 / Qwen / GPT-OSS]
-        LLM_Gemini[Google Gemini 2.0 / Flash API Fallback]
-        LLM_Ollama[Ollama Local Offline LLM Fallback]
+    subgraph AI_Intelligence_Tier [Unified Cloud LLM & Embedding Pipeline]
+        LLM_Groq[Groq LPU Cloud Engine - LLaMA 3.3 / Qwen / GPT-OSS]
+        LLM_Gemini[Google Gemini 2.0 / Flash API Secondary Failover]
         FAISS_Engine[FAISS Vector Store - sentence-transformers/all-mpnet-base-v2]
     end
 
@@ -85,10 +84,9 @@ graph TD
 | **ORM & Database** | SQLAlchemy + SQLite | 2.0.31 | Zero-configuration relational persistence (`nyayassist.db`) storing users, sessions, lawyers, blogs. |
 | **Vector Search** | FAISS CPU | 1.8.0.post1 | High-speed dense vector similarity search running in-memory with NumPy 1.x compatibility. |
 | **Embeddings** | HuggingFace Embeddings | `all-mpnet-base-v2` | State-of-the-art 768-dimensional semantic embeddings for Indian statutory penal codes. |
-| **Primary LLM** | Groq Cloud LPU | LLaMA 3.3 70B / Qwen 27B | Sub-second inference (~300 tokens/sec) providing instant legal chat streaming. |
-| **Fallback LLM** | Google Gemini API | Gemini 2.0 Flash | Cloud fallback ensuring 100% uptime if primary API encounters network rate limits. |
-| **Local Offline LLM**| Ollama | `qwen2.5:7b` | On-premises local LLM execution ensuring privacy and offline capability. |
-| **OCR Processing** | PyTesseract + PDFPlumber | 0.3.10 / 0.11.2 | Multi-format text and scanned image extraction from contracts and FIR PDFs. |
+| **Primary LLM** | Groq Cloud LPU | LLaMA 3.3 70B / Qwen 27B / GPT-OSS | Sub-second inference (~300 tokens/sec) providing instant legal chat streaming. |
+| **Fallback LLM** | Google Gemini API | Gemini 2.0 / Flash API | Automated cloud fallback ensuring 100% uptime if primary API rate limits. |
+| **Document Processing** | PDFPlumber + PyPDF + Python-Docx | 0.11.2 / 4.2.0 | Multi-format contract and FIR PDF/Word parsing without external binary dependencies. |
 
 ---
 
@@ -112,8 +110,7 @@ graph TD
 ### 4.3 Smart Contract & Agreement Risk Analyzer (`/contract-analyzer`)
 * **Endpoint**: `POST /api/contract-analyzer/analyze`.
 * **Technical Nuance**:
-  * **Multi-Format Ingestion**: Ingests `.pdf`, `.docx`, `.txt`, and scanned images (`.png`, `.jpg`).
-  * **OCR Pipeline**: Uses `pdfplumber` for digital PDFs and `pytesseract` for scanned document image OCR.
+  * **Document Parsing Engine**: Uses `pdfplumber` and `pypdf` for structured text and table extraction from digital contracts and agreements.
   * **Automated Risk Scoring & Clause Audit**: Evaluates the contract across 6 statutory risk dimensions:
     1. *Indemnity & Liability Caps*
     2. *Termination for Convenience & Lock-in Periods*
@@ -221,11 +218,10 @@ erDiagram
 
 ## 6. AI Orchestration, Prompt Engineering & Reliability Architecture
 
-### 6.1 Multi-Tiered Failover Strategy
+### 6.1 Multi-Tiered Cloud Failover Strategy
 To ensure 100% platform availability during high-traffic demonstrations and production deployments:
-1. **Tier 1 (Groq Cloud LPU)**: Executes on fast open-source models (`openai/gpt-oss-20b`, `qwen/qwen3.8-27b`, `groq/compound-mini`) with `request_timeout=30s` and `max_retries=3`.
+1. **Tier 1 (Groq Cloud LPU Engine)**: Executes on fast, highly reliable open-source models (`openai/gpt-oss-20b`, `qwen/qwen3.8-27b`, `groq/compound-mini`) with sub-second response times, `request_timeout=30s`, and `max_retries=3`.
 2. **Tier 2 (Google Gemini Flash API)**: Automatically probed and triggered if Tier 1 encounters rate limits or upstream connection timeouts.
-3. **Tier 3 (Local Ollama Instance)**: On-premises offline fallback (`qwen2.5:7b`) for complete data sovereignty and air-gapped environments.
 
 ### 6.2 Prompt Engineering Principles
 * **Plain-Language Constraint**: Instructs the LLM to translate complex legal Latin terms (*mens rea, actus reus, locus standi, suo motu*) into everyday analogies.

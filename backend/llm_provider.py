@@ -52,10 +52,9 @@ def get_best_groq_model(groq_key: str) -> str:
 
 def get_llm(temperature: float = 0.2, max_tokens: int = 2000):
     """
-    Returns the best available LLM instance with Groq as top priority.
-    1. Groq (if GROQ_API_KEY is configured in .env) -> #1 Priority
-    2. Google Gemini (if GEMINI_API_KEY is configured in .env) -> Fallback
-    3. Ollama -> Local fallback
+    Returns the best available cloud LLM instance:
+    1. Groq Cloud LPU (if GROQ_API_KEY is configured in .env) -> #1 Priority
+    2. Google Gemini API (if GEMINI_API_KEY is configured in .env) -> #2 Priority
     """
     groq_key = os.environ.get("GROQ_API_KEY")
     if groq_key and groq_key.strip():
@@ -82,7 +81,7 @@ def get_llm(temperature: float = 0.2, max_tokens: int = 2000):
     if gemini_key and gemini_key.strip():
         try:
             from .gemini_models import get_best_gemini_model
-            model_name = get_best_gemini_model(gemini_key.strip()) or "gemini-3.6-flash"
+            model_name = get_best_gemini_model(gemini_key.strip()) or "gemini-3-flash-preview"
             from langchain_google_genai import ChatGoogleGenerativeAI
             print(f"[NyayAssist] Initializing Gemini LLM (Model: {model_name})")
             return ChatGoogleGenerativeAI(
@@ -94,10 +93,4 @@ def get_llm(temperature: float = 0.2, max_tokens: int = 2000):
         except Exception as e:
             print(f"[NyayAssist] Failed to initialize Gemini: {e}")
 
-    # Fallback to Ollama
-    try:
-        from langchain_community.llms import Ollama
-        print("[NyayAssist] Initializing Ollama local LLM (qwen2.5:7b)")
-        return Ollama(model="qwen2.5:7b")
-    except Exception as e:
-        raise RuntimeError(f"No working LLM provider available. Please set GROQ_API_KEY or GEMINI_API_KEY: {e}")
+    raise RuntimeError("No cloud LLM API key configured. Please add GROQ_API_KEY (from console.groq.com) or GEMINI_API_KEY (from aistudio.google.com) in your .env file.")

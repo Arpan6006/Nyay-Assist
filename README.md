@@ -1,63 +1,88 @@
-# NyayAssist v2
+# NyayAssist: AI-Powered Legal Enablement & Statutory Assistance Platform
 
-NyayAssist is a local-first, privacy-first legal assistance platform for Indian citizens. It runs entirely on your local machine with zero internet data transmission during operation.
+**NyayAssist** is an enterprise-grade LegalTech platform designed for Indian citizens and advocates. It demystifies the new **Bharatiya Nyaya Sanhita (BNS 2023)**, **BNSS 2023**, and **BSA 2023**, providing intelligent legal consultation, automated court document generation, contract risk analysis, and advocate directory workflows powered by ultra-fast cloud LLM inference.
 
-## Prerequisites
+---
 
-1. **Python 3.10+**: Ensure Python is installed and accessible via `python`.
-2. **Node.js 18+**: Required to build the frontend. Ensure `node` and `npm` are installed.
-3. **Tesseract OCR**: Required for Contract Analysis.
-   - **Windows**: Download the installer from [UB-Mannheim](https://github.com/UB-Mannheim/tesseract/wiki). Add the installation path (usually `C:\Program Files\Tesseract-OCR`) to your system's PATH environment variable.
-   - **Ubuntu/Debian**: Run `sudo apt-get update && sudo apt-get install tesseract-ocr`.
-4. **Ollama**: Required for local LLM inference.
-   - Download and install from [ollama.com](https://ollama.com).
-   - Once installed, open a terminal and run: `ollama run qwen2.5:7b` to pull and test the model.
+## 🚀 Key Features
 
-## Setup Instructions
+* **⚖️ Legal Consultation & Voice FIR Assistant**: Multilingual speech-to-text FIR drafter and RAG-grounded statutory legal advice.
+* **📄 Automated Document Studio**: Generate court-ready pleadings, rental agreements, NDAs, legal notices, and multi-page vector PDFs.
+* **🔍 Contract & Agreement Risk Analyzer**: Automated clause risk scoring, liability audit, and redline suggestions for contracts and agreements.
+* **👨‍⚖️ Lawyer Directory & AI Pre-Consultation Dossier**: Connect with verified advocates and 1-click generate structured, court-ready client dossiers.
+* **📚 Legal Blog & Statutory Law Mapper**: Plain-language legal guides and IPC $\leftrightarrow$ BNS section conversion with an adjacent interactive AI assistant.
+* **🛡️ Advocate Portal & Admin Console**: Certificate of Practice (COP) verification for legal professionals.
 
-### 1. Document Drop Locations
-Before running the application, please place the required PDF files in their respective directories:
+---
 
-*   **Corpus PDFs**: Place the official `bns.pdf`, `bnss.pdf`, and `bsa.pdf` files in the `backend/corpus/raw_pdfs/` directory.
-*   **BPR&D Comparison PDFs**: Place the three comparison summary PDFs in the `backend/modules/blog/law_mapping/source_pdfs/` directory.
+## 📋 Prerequisites
 
-### 2. Initial Setup
-Run the setup script to install dependencies and build the frontend (this only needs to be done once, or when dependencies change):
+1. **Python 3.10 to 3.12**: Ensure Python is installed and accessible via `python`.
+2. **Node.js 18+**: Required to build the frontend (`node` and `npm`).
+3. **Free Cloud AI API Key** *(Any one of the following)*:
+   * **Groq Cloud API Key** (*Recommended for ~300 tokens/sec speed*): Get free from [console.groq.com](https://console.groq.com)
+   * **Google Gemini API Key**: Get free from [aistudio.google.com](https://aistudio.google.com)
+
+---
+
+## 🛠️ Installation & Setup
+
+### 1. Configure Environment Variables
+Create a `.env` file in the project root directory with your API keys:
+
+```env
+# AI Provider Keys (Free tier)
+GROQ_API_KEY=gsk_your_groq_api_key_here
+GEMINI_API_KEY=AIzaSy_your_gemini_key_here
+
+# Security & Admin Secrets
+SECRET_KEY=nyayassist_super_secure_jwt_secret_key_2026
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=1440
+NYAYASSIST_ADMIN_PWD=admin123
+```
+
+### 2. Install Dependencies & Build Frontend
 
 ```bash
-# Set up Python virtual environment and install backend requirements
+# 1. Setup Python virtual environment
 python -m venv venv
-# Windows:
+
+# Activate on Windows:
 venv\Scripts\activate
-# Linux/Mac:
+# Activate on Linux/Mac:
 # source venv/bin/activate
 
+# 2. Install backend dependencies
 pip install -r backend/requirements.txt
 
-# Build the frontend (requires npm)
+# 3. Install frontend dependencies and build static assets
 cd frontend
 npm install
 npm run build
 cd ..
 ```
 
-### 3. Generate Corpus & Index
-Before using the chat or blog generation features, run the corpus generation script:
-```bash
-python backend/modules/legal_chat/build_corpus.py
-# (Wait for indexer script instructions once implemented)
-```
+---
 
-## Running the Application
+## ▶️ Running the Application
 
-To start the application, simply run the single entry point script from the root directory:
+Start the unified server by running:
 
 ```bash
-# Ensure your virtual environment is activated
 python run.py
 ```
 
-This will start the FastAPI server, which will also serve the static React frontend. Open your browser and navigate to `http://localhost:8000`.
+* **Application URL**: Open **`http://localhost:8000`** in your browser.
+* **FastAPI Interactive Docs**: Accessible at **`http://localhost:8000/docs`**.
 
-## Architecture Note
-This is a single-process application. The frontend is built into static assets served directly by FastAPI. No separate Node.js development server is required for runtime.
+> **Note for Development**: If you are actively editing frontend React files, you can also run `npm run dev` inside `frontend/` to run Vite on `http://localhost:5173`.
+
+---
+
+## 🏗️ Architecture & Technology Stack
+
+* **Frontend**: React 18, TypeScript, TailwindCSS, Lucide Icons, `html2pdf.js`.
+* **Backend**: FastAPI (Python), Uvicorn ASGI, Pydantic, SQLAlchemy ORM.
+* **Database**: Embedded SQLite (`backend/data/nyayassist.db`) and FAISS vector store.
+* **AI Orchestration**: LangChain, Groq Cloud LPU (LLaMA 3.3 / Qwen / GPT-OSS), and Google Gemini Flash fallback.

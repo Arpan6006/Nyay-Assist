@@ -5,7 +5,6 @@ import os
 os.environ["OMP_THREAD_LIMIT"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
-os.environ["OLLAMA_NUM_PARALLEL"] = "1"
 
 if __name__ == "__main__":
     # Ensure frontend/dist exists, otherwise the server will crash trying to serve it.
