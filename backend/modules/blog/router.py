@@ -227,6 +227,20 @@ class BlogPostCreate(BaseModel):
     source_sections: str
     password: str
 
+@router.get("", response_model=List[BlogPostDetail])
+def list_all_posts(db: Session = Depends(get_db)):
+    posts = db.query(BlogPost).all()
+    return [
+        BlogPostDetail(
+            post_id=p.post_id,
+            title=p.title,
+            body=p.body,
+            crime_type=p.crime_type,
+            source_sections=p.source_sections,
+            mappings=[]
+        ) for p in posts
+    ]
+
 @router.post("")
 def create_post(post: BlogPostCreate, db: Session = Depends(get_db)):
     from ..admin.router import verify_admin
