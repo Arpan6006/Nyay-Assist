@@ -12,7 +12,10 @@ router = APIRouter(prefix="/lawyer-portal", tags=["lawyer_portal"])
 
 # Hardcoded password for internal verification dashboard (per spec)
 INTERNAL_VERIFICATION_PWD = os.environ.get("NYAYASSIST_ADMIN_PWD", "admin123")
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "verification_uploads")
+if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    UPLOAD_DIR = "/tmp/lawyer_verification_uploads"
+else:
+    UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "verification_uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 @router.post("/register")

@@ -12,7 +12,10 @@ from ..db_sync.db import get_db
 from ..auth.router import get_optional_user, User
 
 router = APIRouter(prefix="/contracts", tags=["contract_analyzer"])
-UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
+if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    UPLOAD_DIR = "/tmp/contract_uploads"
+else:
+    UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class ContractClause(BaseModel):

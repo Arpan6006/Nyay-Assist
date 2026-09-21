@@ -10,9 +10,6 @@ from typing import Optional, List, Dict, Any
 from ..db_sync.db import get_db
 from ..db_sync.schema import Conversation, MessageStore
 from ..auth.router import get_optional_user, User
-
-from langchain_community.vectorstores import FAISS
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_core.prompts import PromptTemplate
 
 router = APIRouter(prefix="/chat", tags=["legal_chat"])
@@ -26,6 +23,8 @@ def get_vectorstore():
     if _vectorstore is None:
         try:
             if os.path.exists(FAISS_INDEX_PATH):
+                from langchain_community.vectorstores import FAISS
+                from langchain_huggingface import HuggingFaceEmbeddings
                 from ...utils import get_optimal_device
                 _embeddings = HuggingFaceEmbeddings(
                     model_name="sentence-transformers/all-mpnet-base-v2",

@@ -14,7 +14,10 @@ from .brief_pdf_generator import create_brief_pdf
 
 router = APIRouter(prefix="/lawyers", tags=["lawyer_directory"])
 
-GENERATED_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "generated")
+if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+    GENERATED_DIR = "/tmp/nyayassist_generated"
+else:
+    GENERATED_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "generated")
 os.makedirs(GENERATED_DIR, exist_ok=True)
 
 class CaseBriefRequest(BaseModel):
