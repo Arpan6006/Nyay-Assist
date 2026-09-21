@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-primary;
+  }
+}
+
+@media print {
+  @page {
+    margin: 15mm 15mm;
+    size: A4 portrait;
+  }
+
+  *, *::before, *::after {
+    overflow: visible !important;
+    max-height: none !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  ::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+
+  html, body, #root, main, .print-container {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  header, footer, nav, button, .no-print {
+    display: none !important;
+  }
+
+  .legal-document-paper {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+    line-height: 1.6 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    page-break-inside: auto !important;
+  }
+
+  .legal-document-paper * {
+    color: black !important;
+  }
+}

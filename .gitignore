@@ -1,0 +1,39 @@
+# Environments & Secrets
+.env
+.env.*
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# SQLite & Local Databases
+*.sqlite
+*.db
+*.sqlite3
+
+# Python
+__pycache__/
+*/__pycache__/
+*/**/__pycache__/
+*.py[cod]
+*$py.class
+backend/data/*.db
+
+# IDEs & System
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+.gemini/
+
+# Node & Frontend
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+build/
+.next/
+*.log
+
