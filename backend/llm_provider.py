@@ -80,12 +80,11 @@ def get_llm(temperature: float = 0.2, max_tokens: int = 2000):
     gemini_key = os.environ.get("GEMINI_API_KEY")
     if gemini_key and gemini_key.strip():
         try:
-            from .gemini_models import get_best_gemini_model
-            model_name = get_best_gemini_model(gemini_key.strip()) or "gemini-3-flash-preview"
-            from langchain_google_genai import ChatGoogleGenerativeAI
+            from .gemini_models import get_best_gemini_model, GeminiRESTChat
+            model_name = get_best_gemini_model(gemini_key.strip()) or "gemini-2.5-flash"
             print(f"[NyayAssist] Initializing Gemini LLM (Model: {model_name})")
-            return ChatGoogleGenerativeAI(
-                model=model_name,
+            return GeminiRESTChat(
+                model_name=model_name,
                 google_api_key=gemini_key.strip(),
                 max_output_tokens=min(max_tokens, 2000),
                 temperature=temperature,
