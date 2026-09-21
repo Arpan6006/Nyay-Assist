@@ -10,16 +10,9 @@ venv.bak/
 
 # SQLite & Local Databases
 *.sqlite
-*.db
 *.sqlite3
-
-# Python
-__pycache__/
-*/__pycache__/
-*/**/__pycache__/
-*.py[cod]
-*$py.class
-backend/data/*.db
+!data/nyayassist.db
+!backend/data/nyayassist.db
 
 # IDEs & System
 .idea/
