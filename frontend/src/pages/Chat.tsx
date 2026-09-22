@@ -159,56 +159,71 @@ export default function ChatPage() {
 
       if (reader) {
         setMessages(prev => [...prev, { role: "assistant", content: "" }])
+        let buffer = ""
         
+        const processLine = (rawLine: string) => {
+          const line = rawLine.trim()
+          if (!line.startsWith('data: ')) return
+          const dataStr = line.slice(6).trim()
+          if (!dataStr) return
+          try {
+            const data = JSON.parse(dataStr)
+            if (data.error) {
+              setMessages(prev => {
+                if (prev.length === 0) return prev
+                const newMsgs = [...prev]
+                newMsgs[newMsgs.length - 1] = { ...newMsgs[newMsgs.length - 1], content: `Error: ${data.error}` }
+                return newMsgs
+              })
+            }
+            if (data.chunk) {
+              assistantMsg += data.chunk
+              setMessages(prev => {
+                if (prev.length === 0) return prev
+                const newMsgs = [...prev]
+                newMsgs[newMsgs.length - 1] = { ...newMsgs[newMsgs.length - 1], content: assistantMsg }
+                return newMsgs
+              })
+            }
+            if (data.session_id) {
+              setSessionId(data.session_id)
+              const initialTitle = data.title || payload.structured_intake?.incident?.slice(0, 35) || payload.message?.slice(0, 35) || "Legal Inquiry"
+              setSessions(prev => {
+                if (prev.some(s => s.session_id === data.session_id)) return prev
+                return [{ session_id: data.session_id, title: initialTitle }, ...prev]
+              })
+            }
+            if (data.done) {
+              if (data.citations) {
+                setMessages(prev => {
+                  if (prev.length === 0) return prev
+                  const newMsgs = [...prev]
+                  newMsgs[newMsgs.length - 1] = { ...newMsgs[newMsgs.length - 1], citations: data.citations }
+                  return newMsgs
+                })
+              }
+              fetchSessions()
+            }
+          } catch (e) {
+            // ignore incomplete JSON chunks
+          }
+        }
+
         while (true) {
           const { done, value } = await reader.read()
-          if (done) break
+          if (done) {
+            if (buffer.trim()) {
+              processLine(buffer)
+            }
+            break
+          }
           
-          const chunkStr = decoder.decode(value, { stream: true })
-          const lines = chunkStr.split('\n')
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ""
           
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const dataStr = line.replace('data: ', '')
-              try {
-                const data = JSON.parse(dataStr)
-                if (data.error) {
-                  setMessages(prev => {
-                    const newMsgs = [...prev]
-                    newMsgs[newMsgs.length - 1].content = `Error: ${data.error}`
-                    return newMsgs
-                  })
-                }
-                if (data.chunk) {
-                  assistantMsg += data.chunk
-                  setMessages(prev => {
-                    const newMsgs = [...prev]
-                    newMsgs[newMsgs.length - 1].content = assistantMsg
-                    return newMsgs
-                  })
-                }
-                if (data.session_id) {
-                  setSessionId(data.session_id)
-                  // Immediately add to chat history list as soon as conversation starts
-                  const initialTitle = data.title || payload.structured_intake?.incident?.slice(0, 35) || payload.message?.slice(0, 35) || "Legal Inquiry"
-                  setSessions(prev => {
-                    if (prev.some(s => s.session_id === data.session_id)) return prev
-                    return [{ session_id: data.session_id, title: initialTitle }, ...prev]
-                  })
-                }
-                if (data.done && data.citations) {
-                   setMessages(prev => {
-                    const newMsgs = [...prev]
-                    newMsgs[newMsgs.length - 1].citations = data.citations
-                    return newMsgs
-                  })
-                  // Sync latest from DB
-                  fetchSessions()
-                }
-              } catch (e) {
-                // ignore incomplete JSON chunks
-              }
-            }
+            processLine(line)
           }
         }
       }

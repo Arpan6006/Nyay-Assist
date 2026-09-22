@@ -190,7 +190,22 @@ async def chat_message(
             "and relevant provisions under the Indian Penal Code (IPC), Code of Criminal Procedure (CrPC), and Indian Evidence Act (IEA)."
         )
     
-    # Store user message
+    # Fetch prior conversation history for context in multi-turn chat
+    prior_messages = db.query(MessageStore).filter(MessageStore.session_id == session_id).order_by(MessageStore.id.asc()).all()
+    history_lines = []
+    for pm in prior_messages[-8:]:
+        try:
+            m_data = json.loads(pm.message)
+            role = "Citizen / User" if m_data.get("role") == "user" else "NyayAssist AI"
+            content = m_data.get("content", "").strip()
+            if content:
+                snippet = content if len(content) <= 600 else content[:600] + "..."
+                history_lines.append(f"{role}: {snippet}")
+        except Exception:
+            pass
+    history_text = "\n\n".join(history_lines)
+
+    # Store current user message
     user_msg = MessageStore(session_id=session_id, message=json.dumps({"role": "user", "content": query}))
     db.add(user_msg)
     db.commit()
@@ -202,8 +217,36 @@ async def chat_message(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LLM initialization error: {str(e)}")
     
-    prompt = PromptTemplate(
-        template="""You are NyayAssist, a friendly and helpful Indian legal assistant. Your job is to help ordinary citizens (not lawyers) understand their legal situation in simple, everyday language.
+    if history_text and not request.structured_intake:
+        # Multi-turn follow-up prompt
+        prompt = PromptTemplate(
+            template="""You are NyayAssist, a compassionate, reliable, and expert Indian legal assistant.
+You are actively helping a citizen in an ongoing consultation.
+
+PREVIOUS CONVERSATION:
+{history}
+
+STATUTORY LEGAL CONTEXT (BNS, BNSS, BSA, IPC, CrPC):
+{context}
+
+USER'S FOLLOW-UP QUESTION:
+{question}
+
+INSTRUCTIONS:
+1. Answer the user's follow-up question directly, clearly, and comprehensively in simple, everyday language.
+2. Directly refer to their ongoing situation/incident and build upon what was already discussed.
+3. Reference relevant Indian law sections (Bharatiya Nyaya Sanhita - BNS, Bharatiya Nagarik Suraksha Sanhita - BNSS, Bharatiya Sakshya Adhiniyam - BSA, etc.) and explain legal terms in simple brackets.
+4. Provide practical, actionable next steps, rights, and precautions.
+5. Use clear headings and bullet points for readability.
+
+ANSWER:""",
+            input_variables=["history", "context", "question"]
+        )
+        chain_inputs = {"history": history_text, "context": context_text, "question": query}
+    else:
+        # Initial structured/intake prompt
+        prompt = PromptTemplate(
+            template="""You are NyayAssist, a friendly and helpful Indian legal assistant. Your job is to help ordinary citizens (not lawyers) understand their legal situation in simple, everyday language.
 
 IMPORTANT RULES:
 1. Use simple, plain language that a person with no legal background can easily understand.
@@ -243,8 +286,9 @@ USER QUESTION / SITUATION:
 {question}
 
 ANSWER:""",
-        input_variables=["context", "question"]
-    )
+            input_variables=["context", "question"]
+        )
+        chain_inputs = {"context": context_text, "question": query}
     
     chain = prompt | llm
 
@@ -255,7 +299,7 @@ ANSWER:""",
         full_response = ""
         try:
             # We will stream chunks
-            for chunk in chain.stream({"context": context_text, "question": query}):
+            for chunk in chain.stream(chain_inputs):
                 chunk_text = _extract_text_content(chunk)
                 if chunk_text:
                     full_response += chunk_text

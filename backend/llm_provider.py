@@ -6,12 +6,12 @@ load_dotenv()
 
 # Prioritized Groq models with high reliability and ultra-fast response
 GROQ_CANDIDATE_MODELS: List[str] = [
-    "openai/gpt-oss-20b",
     "qwen/qwen3.8-27b",
-    "groq/compound-mini",
     "llama-3.3-70b-versatile",
     "llama-3.1-8b-instant",
     "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "groq/compound-mini",
 ]
 
 _cached_groq_model: Optional[str] = None
